@@ -1,0 +1,31 @@
+IT 101 Final Project
+
+Building an AI-Assisted Information System Development
+
+System Ideas
+- Online ordering system 
+
+
+Tech Stack
+    Frontend
+    	HTML and CSS (Bootstrap) + Javascript
+    	
+    Backend
+ 	   PHP and MySQL
+
+ 	
+ 	
+
+Rough Plan
+   1. Define the Problem - What do we want to solve
+   2. How do we solve the Problem - Create a rough solution 
+   3. Designate Tasks - Distribute Workload to groupmates
+   4. Learn and Build - Have a set amount of time studying the assigned tasks
+   5. Test and Finalize - Make sure there's no more bugs and is ready for deployment
+   6. Question our Product - Asks questions to ourselves about how can we improve it
+   7. Be ready for a reflection paper
+   
+   
+ Priority
+      - Learn GITHUB for version control and collaboration
+      
