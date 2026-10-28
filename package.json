@@ -1,0 +1,20 @@
+{
+  "name": "room-reservation-app",
+  "private": true,
+  "version": "1.0.0",
+  "workspaces": ["apps/*"],
+  "scripts": {
+    "dev": "concurrently -k -n API,WEB -c blue,green \"npm run dev -w @room-reservation/api\" \"npm run dev -w @room-reservation/web\"",
+    "build": "npm run build -w @room-reservation/api && npm run build -w @room-reservation/web",
+    "test": "npm run test -w @room-reservation/api && npm run test -w @room-reservation/web",
+    "db:generate": "npm run db:generate -w @room-reservation/api",
+    "db:migrate": "npm run db:migrate -w @room-reservation/api",
+    "db:seed": "npm run db:seed -w @room-reservation/api",
+    "format": "prettier --write ."
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "prettier": "^3.4.2"
+  },
+  "engines": { "node": ">=20.18.0" }
+}

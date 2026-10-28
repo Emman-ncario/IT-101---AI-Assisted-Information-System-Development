@@ -1,0 +1,125 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  STUDENT
+  REPRESENTATIVE
+  ADMIN
+}
+
+enum ReservationStatus {
+  CONFIRMED
+  CANCELLED
+}
+
+model User {
+  id              String            @id @default(cuid())
+  fullName        String
+  email           String            @unique
+  passwordHash    String
+  role            UserRole          @default(STUDENT)
+  memberships     ClassMembership[]
+  createdReservations Reservation[] @relation("ReservationCreator")
+  queueItems      BookingQueueItem[]
+  representativeFor Class[]         @relation("ClassRepresentatives")
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+}
+
+model Class {
+  id             String            @id @default(cuid())
+  block          String            @unique
+  program        String
+  yearLevel      Int
+  memberships    ClassMembership[]
+  representatives User[]           @relation("ClassRepresentatives")
+  reservations   Reservation[]
+  bookingQueueItems BookingQueueItem[]
+  createdAt      DateTime          @default(now())
+}
+
+model ClassMembership {
+  id        String   @id @default(cuid())
+  userId    String
+  classId   String
+  isRep     Boolean  @default(false)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  class     Class    @relation(fields: [classId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  @@unique([userId, classId])
+  @@index([classId])
+}
+
+model Building {
+  id          String  @id @default(cuid())
+  code        String  @unique
+  name        String
+  description String
+  imageUrl    String?
+  floors      Floor[]
+  createdAt   DateTime @default(now())
+}
+
+model Floor {
+  id         String   @id @default(cuid())
+  number     Int
+  buildingId String
+  building   Building @relation(fields: [buildingId], references: [id], onDelete: Cascade)
+  rooms      Room[]
+  @@unique([buildingId, number])
+}
+
+model Room {
+  id          String @id @default(cuid())
+  number      String
+  name        String
+  capacity    Int
+  roomType    String
+  facilities  String[]
+  active      Boolean @default(true)
+  floorId     String
+  floor       Floor   @relation(fields: [floorId], references: [id], onDelete: Cascade)
+  reservations Reservation[]
+  queueItems  BookingQueueItem[]
+  @@unique([floorId, number])
+  @@index([floorId, active])
+}
+
+model Reservation {
+  id          String            @id @default(cuid())
+  roomId      String
+  classId     String
+  createdById String
+  startAt     DateTime          @db.Timestamptz(3)
+  endAt       DateTime          @db.Timestamptz(3)
+  status      ReservationStatus @default(CONFIRMED)
+  cancelledAt DateTime?
+  room        Room              @relation(fields: [roomId], references: [id], onDelete: Restrict)
+  class       Class             @relation(fields: [classId], references: [id], onDelete: Restrict)
+  createdBy   User              @relation("ReservationCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  @@index([roomId, startAt, endAt])
+  @@index([classId, startAt])
+  @@index([createdById])
+}
+
+model BookingQueueItem {
+  id        String   @id @default(cuid())
+  userId    String
+  roomId    String
+  classId   String
+  startAt   DateTime @db.Timestamptz(3)
+  endAt     DateTime @db.Timestamptz(3)
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  room      Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  class     Class    @relation(fields: [classId], references: [id], onDelete: Cascade)
+  @@index([userId, createdAt])
+}

@@ -1,2 +1,100 @@
-# IT-101---AI-Assisted-Information-System-Development
-Final Project - Room Reservation System
+# Room Reservation
+
+A full-stack classroom reservation system built with React, TypeScript, Vite, Express, PostgreSQL, Prisma, Zod, server-managed sessions, and Argon2id.
+
+> This is a development-ready reference implementation, not a deployment certification. Run the setup and test commands below in your environment before using real student data.
+
+## Requirements
+
+- Node.js 20.18+ (Node 22 LTS recommended)
+- npm 10+
+- PostgreSQL 15+
+- Two terminal windows are convenient but not required.
+
+## Quick start
+
+1. Create a PostgreSQL database and user. Example using `psql` as a database administrator:
+
+   ```sql
+   CREATE USER roomapp WITH PASSWORD 'replace-with-a-local-password';
+   CREATE DATABASE room_reservation OWNER roomapp;
+   ```
+
+2. Copy `apps/api/.env.example` to `apps/api/.env` and set `DATABASE_URL`, `SESSION_SECRET` (at least 32 random characters), and the other values. Copy `apps/web/.env.example` to `apps/web/.env`.
+
+3. From the repository root:
+
+   ```bash
+   npm install
+   npm run db:generate
+   npm run db:migrate
+   npm run db:seed
+   npm run dev
+   ```
+
+4. Open `http://localhost:5173`. API runs at `http://localhost:4000`.
+
+## Demo accounts
+
+The seed script creates development-only accounts with the password `DemoPass!234`:
+
+| Account | Role | Class |
+|---|---|---|
+| `rep.it1a@example.test` | Representative | BSIT-1A |
+| `student.it1a@example.test` | Student | BSIT-1A |
+| `rep.it1b@example.test` | Representative | BSIT-1B |
+| `student.it1b@example.test` | Student | BSIT-1B |
+
+Never use these credentials in production. Replace the seed data and disable public demo-account creation before deployment.
+
+## Useful commands
+
+Run from repository root:
+
+```bash
+npm run dev                  # frontend + API
+npm run build                # production builds
+npm test                     # automated tests
+npm run db:generate          # Prisma client
+npm run db:migrate           # create/apply local development migration
+npm run db:seed              # sample buildings, rooms, classes and users
+```
+
+The API's `db:migrate` script runs `prisma migrate dev`; use reviewed migrations and `prisma migrate deploy` in production.
+
+## Defaults and assumptions
+
+- Time zone: `Asia/Manila`; dates and local schedule boundaries are interpreted in this zone.
+- Operating days: Monday–Saturday, 07:00–21:00.
+- Slot interval: 30 minutes; reservations must start/end on interval boundaries.
+- Maximum duration: 4 hours per reservation.
+- Cancellation: representatives may cancel their own future reservations.
+- Class membership: users see classes to which they belong; representatives can add existing student accounts to their own class only.
+- Representative limit: two per class.
+- Provisioning: accounts are seeded for development; production accounts should be provisioned by an administrator or trusted institutional process.
+- Sample buildings, rooms, students, and class names are fictional demo data.
+
+## Security notes
+
+- Passwords are Argon2id-hashed.
+- Sessions are stored in PostgreSQL using `connect-pg-simple`; cookies are HttpOnly and SameSite=Lax, and Secure in production.
+- State-changing requests validate an origin and require a session-bound CSRF token.
+- Helmet, CORS allowlisting, and login rate limiting are enabled.
+- Reservation creation is guarded by a PostgreSQL exclusion constraint over confirmed time ranges. Confirmations run in a transaction and conflicting bookings return HTTP 409.
+- The application is not a substitute for a security review. Configure TLS, backups, monitoring, trusted origins, database least privilege, and institutional account lifecycle controls before deployment.
+
+## Verification checklist
+
+- [ ] Sign in with a seeded representative and student account.
+- [ ] Browse buildings, floors, rooms, and availability.
+- [ ] Add a reservation to the representative's queue and confirm it.
+- [ ] Verify the class member can see the confirmed reservation.
+- [ ] Verify a student receives 403 for queue/booking mutation endpoints.
+- [ ] Try overlapping reservations in the same room; the second must fail.
+- [ ] Cancel a future reservation and verify the interval becomes available.
+- [ ] Add an existing student to the representative's own class and try duplicate membership.
+- [ ] Verify a representative cannot manage another class.
+
+## Known scope
+
+The core login, role enforcement, room browser, queue, reservations, class visibility, and class-member addition flows are implemented. Profile editing, email/password reset, administrator UI, temporary holds, and institutional SSO are intentionally deferred. No test results are claimed until `npm test` has been run successfully in the target environment.
