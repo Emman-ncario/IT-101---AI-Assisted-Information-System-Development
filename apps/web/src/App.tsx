@@ -17,58 +17,279 @@ function useTheme() {
   return { dark, toggle: () => setDark(v => !v) };
 }
 
+//<----------------------------Login Page---------------------------->
 function LoginPage() {
   const { user, setUser } = useAuth();
+
   const [email, setEmail] = useState("rep.it1a@example.test");
   const [password, setPassword] = useState("DemoPass!234");
   const [show, setShow] = useState(false);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+
   const navigate = useNavigate();
-  if (user) return <Navigate to="/" replace />;
+  const theme = useTheme();
+
+  if (user) {
+    return <Navigate to="/" replace />;
+  }
+
   async function submit(e: React.FormEvent) {
-    e.preventDefault(); setBusy(true); setError("");
+    e.preventDefault();
+    setBusy(true);
+    setError("");
+
     try {
       await refreshCsrf();
-      const result = await api.post<{ user: User; csrfToken: string }>("/auth/login", { email, password });
-      api.setCsrf(result.csrfToken); setUser(result.user); navigate("/");
-    } catch (err) { setError(err instanceof Error ? err.message : "Unable to sign in."); }
-    finally { setBusy(false); }
+
+      const result = await api.post<{
+        user: User;
+        csrfToken: string;
+      }>("/auth/login", {
+        email,
+        password,
+      });
+
+      api.setCsrf(result.csrfToken);
+      setUser(result.user);
+      navigate("/");
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Unable to sign in."
+      );
+    } finally {
+      setBusy(false);
+    }
   }
-  return <main className="login-page">
-    <section className="login-brand"><div className="brand-mark">R</div><span className="eyebrow">CAMPUS SPACE MANAGEMENT</span><h1>Roomwise</h1><p>Find the right room. Keep your class moving.</p><div className="login-art"><div className="art-card"><Building2 size={28}/><span>Classrooms, organized.</span></div><div className="art-grid">{Array.from({length: 16}, (_, i) => <span key={i} />)}</div></div></section>
-    <section className="login-form-wrap"><form className="login-form" onSubmit={submit}>
-      <span className="eyebrow">WELCOME BACK</span><h2>Sign in to your account</h2><p className="muted">Use your school account to check classroom availability.</p>
-      {error && <div className="alert error" role="alert">{error}</div>}
-      <label>Email address<input type="email" autoComplete="username" required value={email} onChange={e => setEmail(e.target.value)} placeholder="you@school.edu"/></label>
-      <label>Password<div className="password-field"><input type={show ? "text" : "password"} autoComplete="current-password" required value={password} onChange={e => setPassword(e.target.value)}/><button type="button" className="text-button" onClick={() => setShow(v => !v)}>{show ? "Hide" : "Show"}</button></div></label>
-      <button className="btn primary full" disabled={busy}>{busy ? "Signing in…" : "Sign in"} <span>→</span></button>
-      <p className="fine-print">Password reset is not enabled in this demo. Contact your institution's account administrator.</p>
-      <div className="demo-hint"><strong>Development demo</strong><span>rep.it1a@example.test · DemoPass!234</span></div>
-    </form></section>
-  </main>;
+
+  return (
+    <main className="login-page">
+      <section className="login-brand">
+        <div className="brand-mark">W</div>
+
+        <span className="eyebrow">
+          BSIT - 1B IT 101 Group Project
+        </span>
+
+        <h1>Room for More?</h1>
+
+        <p>
+          Find the right room. Keep your class moving.
+        </p>
+
+        <div className="login-art">
+          <div className="art-card">
+            <Building2 size={28} />
+            <span>Classrooms, organized.</span>
+          </div>
+
+          <div className="art-grid">
+            {Array.from({ length: 16 }, (_, i) => (
+              <span key={i} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="login-form-wrap">
+        <button
+          type="button"
+          className="icon-button login-theme-toggle"
+          onClick={theme.toggle}
+          aria-label={theme.dark ? "Switch to light mode" : "Switch to dark mode"}
+        >
+          {theme.dark ? <Sun size={18} /> : <Moon size={18} />}
+        </button>
+
+        <form className="login-form" onSubmit={submit}>
+          <span className="eyebrow">WELCOME BACK</span>
+
+          <h2>Sign in to your account</h2>
+
+          <p className="muted">
+            Use your school account to check classroom availability.
+          </p>
+
+          {error && (
+            <div className="alert error" role="alert">
+              {error}
+            </div>
+          )}
+
+          <label>
+            Email address
+
+            <input
+              type="email"
+              autoComplete="username"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@school.edu"
+            />
+          </label>
+
+          <label>
+            Password
+
+            <div className="password-field">
+              <input
+                type={show ? "text" : "password"}
+                autoComplete="current-password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+
+              <button
+                type="button"
+                className="text-button"
+                onClick={() => setShow((v) => !v)}
+              >
+                {show ? "Hide" : "Show"}
+              </button>
+            </div>
+          </label>
+
+          <button
+            className="btn primary full"
+            disabled={busy}
+          >
+            {busy ? "Signing in…" : "Sign in"}
+            <span>→</span>
+          </button>
+
+          <p className="fine-print">
+            Password reset is not enabled in this demo.
+            Contact your institution's account administrator.
+          </p>
+
+          <div className="demo-hint">
+            <strong>Development demo</strong>
+            <span>
+              rep.it1a@example.test · DemoPass!234
+            </span>
+          </div>
+        </form>
+      </section>
+    </main>
+  );
 }
+
+//<----------------------------Main Page (Dashboard)---------------------------->
 
 function AppShell({ children }: { children: React.ReactNode }) {
   const { user, setUser } = useAuth();
   const theme = useTheme();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
-  async function logout() { try { await api.post("/auth/logout"); } finally { setUser(null); navigate("/login"); } }
+
+  async function logout() {
+    try {
+      await api.post("/auth/logout");
+    } finally {
+      setUser(null);
+      navigate("/login");
+    }
+  }
+
   const links = [
     { to: "/", label: "Dashboard", icon: CalendarDays },
     { to: "/rooms", label: "Find rooms", icon: Building2 },
-    ...(user?.role === "REPRESENTATIVE" || user?.role === "ADMIN" ? [{ to: "/queue", label: "Booking queue", icon: ClipboardList }] : []),
+    ...(user?.role === "REPRESENTATIVE" || user?.role === "ADMIN"
+      ? [{ to: "/queue", label: "Booking queue", icon: ClipboardList }]
+      : []),
     { to: "/classes", label: "Classes", icon: Users },
-    { to: "/profile", label: "Profile", icon: UserCircle }
+    { to: "/profile", label: "Profile", icon: UserCircle },
   ];
-  return <div className="app-shell">
-    <header className="topbar"><Link to="/" className="wordmark"><span className="brand-mark small">R</span><span>roomwise<span className="wordmark-dot">.</span></span></Link>
-      <nav className={`main-nav ${mobileOpen ? "open" : ""}`} aria-label="Main navigation">{links.map(({to,label,icon:Icon}) => <NavLink key={to} to={to} end={to === "/"} onClick={() => setMobileOpen(false)}><Icon size={16}/>{label}</NavLink>)}</nav>
-      <div className="top-actions"><button className="icon-button" onClick={theme.toggle} aria-label={theme.dark ? "Switch to light mode" : "Switch to dark mode"}>{theme.dark ? <Sun size={18}/> : <Moon size={18}/>}</button><div className="profile-chip"><span className="avatar">{user?.fullName.split(" ").map(n=>n[0]).slice(0,2).join("")}</span><span className="profile-chip-name">{user?.fullName}<small>{user?.role === "REPRESENTATIVE" ? "Class representative" : user?.role === "ADMIN" ? "Administrator" : "Student"}</small></span></div><button className="icon-button" onClick={logout} aria-label="Log out" title="Log out"><LogOut size={17}/></button><button className="icon-button mobile-menu" onClick={() => setMobileOpen(v=>!v)} aria-label="Toggle navigation"><Menu size={19}/></button></div>
-    </header><main className="main-content">{children}</main><footer className="footer"><span>ROOMWISE / CAMPUS SPACE MANAGEMENT</span><span>Made for better learning spaces.</span></footer>
-  </div>;
+
+  return (
+    <div className="app-shell">
+      <header className="topbar">
+        <Link to="/" className="wordmark">
+          <span className="brand-mark small">R</span>
+          <span>
+            roomwise<span className="wordmark-dot">.</span>
+          </span>
+        </Link>
+
+        <nav
+          className={`main-nav ${mobileOpen ? "open" : ""}`}
+          aria-label="Main navigation"
+        >
+          {links.map(({ to, label, icon: Icon }) => (
+            <NavLink
+              key={to}
+              to={to}
+              end={to === "/"}
+              onClick={() => setMobileOpen(false)}
+            >
+              <Icon size={16} />
+              {label}
+            </NavLink>
+          ))}
+        </nav>
+
+        <div className="top-actions">
+          <button
+            className="icon-button"
+            onClick={theme.toggle}
+            aria-label={theme.dark ? "Switch to light mode" : "Switch to dark mode"}
+          >
+            {theme.dark ? <Sun size={18} /> : <Moon size={18} />}
+          </button>
+
+          <div className="profile-chip">
+            <span className="avatar">
+              {user?.fullName
+                .split(" ")
+                .map((n) => n[0])
+                .slice(0, 2)
+                .join("")}
+            </span>
+            <span className="profile-chip-name">
+              {user?.fullName}
+              <small>
+                {user?.role === "REPRESENTATIVE"
+                  ? "Class representative"
+                  : user?.role === "ADMIN"
+                    ? "Administrator"
+                    : "Student"}
+              </small>
+            </span>
+          </div>
+
+          <button
+            className="icon-button"
+            onClick={logout}
+            aria-label="Log out"
+            title="Log out"
+          >
+            <LogOut size={17} />
+          </button>
+
+          <button
+            className="icon-button mobile-menu"
+            onClick={() => setMobileOpen((v) => !v)}
+            aria-label="Toggle navigation"
+          >
+            <Menu size={19} />
+          </button>
+        </div>
+      </header>
+
+      <main className="main-content">{children}</main>
+
+      <footer className="footer">
+        <span>ROOMWISE / CAMPUS SPACE MANAGEMENT</span>
+        <span>Made for better learning spaces.</span>
+      </footer>
+    </div>
+  );
 }
+
 function Protected({ children, representative = false }: { children: React.ReactNode; representative?: boolean }) {
   const { user } = useAuth();
   if (!user) return <Navigate to="/login" replace />;
