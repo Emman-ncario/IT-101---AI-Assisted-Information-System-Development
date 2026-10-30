@@ -21,6 +21,16 @@
   --green: #168568;
   --red: #c94b53;
   --shadow: 0 8px 28px rgba(27, 48, 84, .045);
+
+  /* Auth page left panel */
+  --brand-bg: #edf2ff;
+  --brand-text: #192d53;
+  --brand-muted: #687a9a;
+  --brand-card: #ffffff;
+  --brand-card-text: #3268e9;
+  --tile: #e1e9fc;
+  --tile-alt: #d0dcf7;
+  --tile-line: #c7d4f1;
 }
 
 :root[data-theme=dark] {
@@ -38,6 +48,16 @@
   --green: #60c8a7;
   --red: #ff858b;
   --shadow: 0 8px 28px rgba(0, 0, 0, .12);
+
+  /* Auth page left panel */
+  --brand-bg: #131d2f;
+  --brand-text: #e8edf7;
+  --brand-muted: #a0aec2;
+  --brand-card: #1d2a3d;
+  --brand-card-text: #7ba0ff;
+  --tile: #1d2a3d;
+  --tile-alt: #23385d;
+  --tile-line: #2b394d;
 }
 
 /* ---------- Base ---------- */
@@ -1248,14 +1268,14 @@ input::placeholder {
 
 .login-brand {
   padding: clamp(35px, 7vw, 100px);
-  background: #edf2ff;
+  background: var(--brand-bg);
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   justify-content: center;
   position: relative;
   overflow: hidden;
-  color: #192d53;
+  color: var(--brand-text);
 }
 
 .login-brand .brand-mark {
@@ -1271,7 +1291,7 @@ input::placeholder {
 
 .login-brand > p {
   font-size: 15px;
-  color: #687a9a;
+  color: var(--brand-muted);
   max-width: 300px;
   line-height: 1.7;
 }
@@ -1292,11 +1312,11 @@ input::placeholder {
   display: flex;
   align-items: center;
   gap: 14px;
-  background: #fff;
+  background: var(--brand-card);
   padding: 20px 24px;
   border-radius: 12px;
   box-shadow: 0 16px 40px #35518a1b;
-  color: #3268e9;
+  color: var(--brand-card-text);
   font-weight: 600;
 }
 
@@ -1312,13 +1332,13 @@ input::placeholder {
 
 .art-grid span {
   height: 38px;
-  border: 1px solid #c7d4f1;
+  border: 1px solid var(--tile-line);
   border-radius: 8px;
-  background: #e1e9fc;
+  background: var(--tile);
 }
 
 .art-grid span:nth-child(3n) {
-  background: #d0dcf7;
+  background: var(--tile-alt);
 }
 
 .login-theme-toggle {
@@ -1645,5 +1665,30 @@ input::placeholder {
 
   .calendar-legend span {
     font-size: 8px;
+  }
+
+}
+/* ---------- Theme change: simple fade ---------- */
+/* Browser cross-fade for the whole page (View Transitions API) */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: .6s;
+  animation-timing-function: ease-in-out;
+}
+
+/* Fallback for browsers without View Transitions: fade every colour */
+.theme-switching *,
+.theme-switching *::before,
+.theme-switching *::after {
+  transition: background-color .6s ease, color .6s ease, border-color .6s ease, fill .6s ease !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+  }
+  .theme-switching * {
+    transition: none !important;
   }
 }

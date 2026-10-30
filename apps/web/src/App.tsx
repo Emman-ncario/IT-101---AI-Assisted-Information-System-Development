@@ -2,6 +2,7 @@ import { useEffect, useState, createContext, useContext } from "react";
 import { Link, NavLink, Navigate, Route, Routes, useNavigate } from "react-router-dom";
 import { CalendarDays, Building2, Users, ClipboardList, UserCircle, Sun, Moon, LogOut, Search, Clock3, Plus, Trash2, CheckCircle2, X, Menu } from "lucide-react";
 import { api, refreshCsrf } from "./api";
+import { flushSync } from "react-dom";
 import type { User, Building, Reservation, QueueItem, ClassInfo, Room } from "./types";
 
 type AuthContextType = { user: User | null; setUser: (user: User | null) => void };
@@ -14,8 +15,27 @@ function useTheme() {
     document.documentElement.dataset.theme = dark ? "dark" : "light";
     localStorage.setItem("roomwise-theme", dark ? "dark" : "light");
   }, [dark]);
-  return { dark, toggle: () => setDark(v => !v) };
+
+  const toggle = () => {
+    const next = !dark;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    if (!document.startViewTransition || reduce) {
+      document.documentElement.classList.add("theme-switching");
+      setDark(next);
+      setTimeout(() => document.documentElement.classList.remove("theme-switching"), 700);
+      return;
+    }
+
+    document.startViewTransition(() => {
+      flushSync(() => setDark(next));
+      document.documentElement.dataset.theme = next ? "dark" : "light";;
+    });
+  };
+
+  return { dark, toggle };
 }
+
 
 //<----------------------------Login Page---------------------------->
 function LoginPage() {
