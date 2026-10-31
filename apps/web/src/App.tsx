@@ -1,6 +1,6 @@
 import { useEffect, useState, createContext, useContext } from "react";
 import { Link, NavLink, Navigate, Route, Routes, useNavigate } from "react-router-dom";
-import { CalendarDays, Building2, Users, ClipboardList, UserCircle, Sun, Moon, LogOut, Search, Clock3, Plus, Trash2, CheckCircle2, X, Menu } from "lucide-react";
+import { CalendarDays, Building2, Users, ClipboardList, UserCircle, Sun, Moon, LogOut, Eye, EyeOff, Search, Clock3, Plus, Trash2, CheckCircle2, X, Menu } from "lucide-react";
 import { api, refreshCsrf } from "./api";
 import { flushSync } from "react-dom";
 import type { User, Building, Reservation, QueueItem, ClassInfo, Room } from "./types";
@@ -40,7 +40,6 @@ function useTheme() {
 //<----------------------------Login Page---------------------------->
 function LoginPage() {
   const { user, setUser } = useAuth();
-
   const [email, setEmail] = useState("rep.it1a@example.test");
   const [password, setPassword] = useState("DemoPass!234");
   const [show, setShow] = useState(false);
@@ -87,7 +86,9 @@ function LoginPage() {
   return (
     <main className="login-page">
       <section className="login-brand">
-        <div className="brand-mark">W</div>
+        
+        {/*Make a New Logo*/}
+        <div className="brand-mark">LM</div>
 
         <span className="eyebrow">
           BSIT - 1B IT 101 Group Project
@@ -95,22 +96,49 @@ function LoginPage() {
 
         <h1>Room for More?</h1>
 
-        <p>
-          Find the right room. Keep your class moving.
-        </p>
+        <p className="muted">Find a space, reserve your time, and keep your day moving.</p>
 
-        <div className="login-art">
+        <div className="art-cards" aria-hidden="true">
           <div className="art-card">
-            <Building2 size={28} />
-            <span>Classrooms, organized.</span>
+            <div className="art-icon">
+              <svg viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>
+          </div>
+        <strong>Tagline #1</strong>
+        <small>Description #3</small>
+        
+        <div className="bar"><i /></div>
+    
           </div>
 
-          <div className="art-grid">
-            {Array.from({ length: 16 }, (_, i) => (
-              <span key={i} />
-            ))}
+          <div className="art-card">
+            <div className="art-icon">
+              <svg viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>
+          </div>
+        <strong>Tagline #2</strong>
+        <small>Description #3</small>
+        
+        <div className="bar"><i /></div>
+    
+          </div>
+
+        <div className="art-card">
+            <div className="art-icon">
+              <svg viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>
+          </div>
+        <strong>Tagline #3</strong>
+        <small>Description #3</small>
+        
+        <div className="bar"><i /></div>
+    
           </div>
         </div>
+        
+        <div className="bg-shapes" aria-hidden="true">
+            <div className="shape circle-big" />
+            <div className="shape circle-mid" />
+            <div className="shape square-big" />
+            <div className="shape ring-big" />
+          </div>
       </section>
 
       <section className="login-form-wrap">
@@ -124,12 +152,12 @@ function LoginPage() {
         </button>
 
         <form className="login-form" onSubmit={submit}>
-          <span className="eyebrow">WELCOME BACK</span>
+          <span className="eyebrow">WELCOME TO A ROOM RESERVATION INFORMATION SYSTEM</span>
 
           <h2>Sign in to your account</h2>
 
           <p className="muted">
-            Use your school account to check classroom availability.
+            Placeholder
           </p>
 
           {error && (
@@ -137,6 +165,8 @@ function LoginPage() {
               {error}
             </div>
           )}
+
+          <hr className="auth-divider" />
 
           <label>
             Email address
@@ -167,31 +197,28 @@ function LoginPage() {
                 type="button"
                 className="text-button"
                 onClick={() => setShow((v) => !v)}
-              >
-                {show ? "Hide" : "Show"}
+                aria-label={show ? "Hide password" : "Show password"}
+                title={show ? "Hide password" : "Show password"}>
+             
+                {show ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
           </label>
 
-          <button
-            className="btn primary full"
-            disabled={busy}
-          >
-            {busy ? "Signing in…" : "Sign in"}
-            <span>→</span>
-          </button>
+          <div className="auth-actions">
+            <button
+              className="btn primary"
+              disabled={busy}>
+              {busy ? "Signing in…" : "Sign in"}
+            </button>
 
-          <p className="fine-print">
-            Password reset is not enabled in this demo.
-            Contact your institution's account administrator.
-          </p>
-
-          <div className="demo-hint">
-            <strong>Development demo</strong>
-            <span>
-              rep.it1a@example.test · DemoPass!234
-            </span>
+            <button
+              type="button"
+              className="btn primary">
+                Sign up
+            </button>
           </div>
+
         </form>
       </section>
     </main>
@@ -229,9 +256,9 @@ function AppShell({ children }: { children: React.ReactNode }) {
     <div className="app-shell">
       <header className="topbar">
         <Link to="/" className="wordmark">
-          <span className="brand-mark small">R</span>
+          <span className="brand-mark small">LM</span>
           <span>
-            roomwise<span className="wordmark-dot">.</span>
+            Room for More<span className="wordmark-mark">?</span>
           </span>
         </Link>
 
@@ -256,8 +283,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
           <button
             className="icon-button"
             onClick={theme.toggle}
-            aria-label={theme.dark ? "Switch to light mode" : "Switch to dark mode"}
-          >
+            aria-label={theme.dark ? "Switch to light mode" : "Switch to dark mode"}>
             {theme.dark ? <Sun size={18} /> : <Moon size={18} />}
           </button>
 
@@ -285,16 +311,14 @@ function AppShell({ children }: { children: React.ReactNode }) {
             className="icon-button"
             onClick={logout}
             aria-label="Log out"
-            title="Log out"
-          >
+            title="Log out">
             <LogOut size={17} />
           </button>
 
           <button
             className="icon-button mobile-menu"
             onClick={() => setMobileOpen((v) => !v)}
-            aria-label="Toggle navigation"
-          >
+            aria-label="Toggle navigation">
             <Menu size={19} />
           </button>
         </div>
@@ -303,8 +327,8 @@ function AppShell({ children }: { children: React.ReactNode }) {
       <main className="main-content">{children}</main>
 
       <footer className="footer">
-        <span>ROOMWISE / CAMPUS SPACE MANAGEMENT</span>
-        <span>Made for better learning spaces.</span>
+        <span>BSIT - 1B IT 101 Group Project</span>
+        <span>Placeholder</span>
       </footer>
     </div>
   );
