@@ -1,7 +1,8 @@
 import { useEffect, useState, createContext, useContext } from "react";
 import { Link, NavLink, Navigate, Route, Routes, useNavigate } from "react-router-dom";
-import { CalendarDays, Building2, Users, ClipboardList, UserCircle, Sun, Moon, LogOut, Eye, EyeOff, Search, Clock3, Plus, Trash2, CheckCircle2, X, Menu } from "lucide-react";
+import { CalendarDays, Building2, Users, ClipboardList, UserCircle, Sun, Moon, LogOut, Eye, EyeOff, Search, Clock3, Plus, Trash2, CheckCircle2, X, Menu, UserCheck } from "lucide-react";
 import { api, refreshCsrf } from "./api";
+import { disablePreview, enablePreview, previewUser, syncPreviewFromUrl } from "./preview";
 import { flushSync } from "react-dom";
 import type { User, Building, Reservation, QueueItem, ClassInfo, Room } from "./types";
 
@@ -219,6 +220,26 @@ function LoginPage() {
             </button>
           </div>
 
+          {import.meta.env.DEV && (
+            <>
+              <hr className="auth-divider" />
+              <button
+                type="button"
+                className="btn secondary"
+                onClick={() => {
+                  enablePreview();
+                  setUser(previewUser);
+                  navigate("/");
+                }}
+              >
+                Preview UI
+              </button>
+              <p className="helper-text">
+                Development only. Opens the existing pages with mock data (no backend). Add <code>?preview=1</code> to a URL to enter, or <code>?preview=0</code> to exit.
+              </p>
+            </>
+          )}
+
         </form>
       </section>
     </main>
@@ -237,6 +258,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
     try {
       await api.post("/auth/logout");
     } finally {
+      disablePreview();
       setUser(null);
       navigate("/login");
     }
@@ -430,15 +452,220 @@ function QueuePage() {
   async function confirmBookings(){if(!items.length)return;if(!confirm(`Confirm ${items.length} reservation(s)?`))return;try{await api.post("/booking-queue/confirm",{itemIds:items.map(i=>i.id)});setMessage("Reservations confirmed.");await load();}catch(e){setMessage(e instanceof Error?e.message:"Confirmation failed.");}}
   return <><PageHeading eyebrow="RESERVATION WORKFLOW" title="Booking queue" description="Review your proposed bookings before confirming them." action={<button className="btn primary" onClick={confirmBookings} disabled={!items.length}><CheckCircle2 size={16}/> Confirm all</button>}/>{message&&<div className="alert" role="status">{message}</div>}<section className="panel queue-panel"><div className="panel-heading"><div><span className="eyebrow">PENDING CONFIRMATION</span><h2>{items.length} queued reservation{items.length===1?"":"s"}</h2></div><span className="status pending">Not yet confirmed</span></div>{busy?<div className="loading-state">Loading queue…</div>:items.length===0?<div className="empty-state"><ClipboardList size={28}/><strong>Your queue is clear</strong><span>Choose a room and add a proposed reservation to get started.</span><Link className="btn secondary" to="/rooms">Find a room</Link></div>:<div className="queue-list">{items.map(item=><article className="queue-item" key={item.id}><div className="queue-room-icon"><Building2 size={21}/></div><div className="queue-item-info"><h3>{item.room.floor?.building?.name??"Building"} · Room {item.room.number}</h3><p>{item.class.block} · Floor {item.room.floor?.number}</p><div className="reservation-meta"><span><CalendarDays size={14}/>{new Date(item.startAt).toLocaleDateString()}</span><span><Clock3 size={14}/>{new Date(item.startAt).toLocaleTimeString([],{hour:"numeric",minute:"2-digit"})} – {new Date(item.endAt).toLocaleTimeString([],{hour:"numeric",minute:"2-digit"})}</span></div></div><div className="queue-item-actions"><span className="duration">{(new Date(item.endAt).getTime()-new Date(item.startAt).getTime())/3600000} hr</span><button className="icon-button danger" aria-label="Remove queued booking" onClick={()=>remove(item.id)}><Trash2 size={17}/></button></div></article>)}</div>}</section><p className="fine-print queue-note">Queued items do not block availability. Each item is revalidated on confirmation; conflicting bookings remain in the queue so you can edit or remove them.</p></>;
 }
+
 function ClassesPage() {
-  const [classes,setClasses]=useState<any[]>([]);
-  const [email,setEmail]=useState<Record<string,string>>({});
-  const [message,setMessage]=useState("");
-  const {user}=useAuth();
-  async function load(){try{setClasses(await api.get<any[]>("/classes"));}catch(e){setMessage(e instanceof Error?e.message:"Unable to load classes.");}}
-  useEffect(()=>{load();},[]);
-  async function addMember(id:string){try{await api.post(`/classes/${id}/members`,{email:email[id]});setMessage("Student added to class.");setEmail(v=>({...v,[id]:""}));await load();}catch(e){setMessage(e instanceof Error?e.message:"Unable to add student.");}}
-  return <><PageHeading eyebrow="ACADEMIC DIRECTORY" title="Your classes" description="Class rosters, representatives, and upcoming room reservations."/><div className="class-list">{classes.map(cls=><section className="panel class-panel" key={cls.id}><div className="class-banner"><div className="class-monogram">{cls.block.slice(-2)}</div><div><span className="eyebrow">{cls.program}</span><h2>{cls.block}</h2><p>{cls.yearLevel}{cls.yearLevel===1?"st":cls.yearLevel===2?"nd":cls.yearLevel===3?"rd":"th"} year · {cls.memberships.length} members</p></div></div><div className="class-content"><div><h3>Representatives</h3><div className="member-list">{cls.representatives.map((rep:any)=><div className="member-row" key={rep.id}><span className="avatar">{rep.fullName.split(" ").map((n:string)=>n[0]).slice(0,2).join("")}</span><span>{rep.fullName}<small>{rep.email}</small></span><span className="status confirmed">Representative</span></div>)}</div><h3>Class members</h3><div className="member-list">{cls.memberships.map((m:any)=><div className="member-row" key={m.id}><span className="avatar">{m.user.fullName.split(" ").map((n:string)=>n[0]).slice(0,2).join("")}</span><span>{m.user.fullName}<small>{m.user.email}</small></span>{m.isRep&&<span className="status confirmed">Rep</span>}</div>)}</div>{cls.memberships.some((m:any)=>m.userId===user?.id&&m.isRep)&&<div className="add-member"><label className="field-label">Add existing student by email<input type="email" placeholder="student@school.edu" value={email[cls.id]??""} onChange={e=>setEmail(v=>({...v,[cls.id]:e.target.value}))}/></label><button className="btn secondary" onClick={()=>addMember(cls.id)}><Plus size={15}/> Add student</button></div>}</div><div className="class-reservations"><h3>Confirmed reservations</h3>{cls.reservations.length?cls.reservations.map((r:any)=><div className="class-reservation" key={r.id}><strong>Room {r.room.number}</strong><span>{new Date(r.startAt).toLocaleDateString()}</span><small>{new Date(r.startAt).toLocaleTimeString([],{hour:"numeric",minute:"2-digit"})} – {new Date(r.endAt).toLocaleTimeString([],{hour:"numeric",minute:"2-digit"})}</small></div>):<p className="muted">No upcoming reservations.</p>}</div></div></section>)}</div>{message&&<div className="alert" role="status">{message}</div>}</>;
+  const [classes, setClasses] = useState<any[]>([]);
+  const [email, setEmail] = useState<Record<string, string>>({});
+  const [message, setMessage] = useState("");
+  const { user } = useAuth();
+
+  async function load() {
+    try {
+      setClasses(await api.get<any[]>("/classes"));
+    } catch (e) {
+      setMessage(e instanceof Error ? e.message : "Unable to load classes.");
+    }
+  }
+
+  useEffect(() => {
+    load();
+  }, []);
+
+  async function addMember(id: string) {
+    try {
+      await api.post(`/classes/${id}/members`, { email: email[id] });
+      setMessage("Student added to class.");
+      setEmail(v => ({ ...v, [id]: "" }));
+      await load();
+    } catch (e) {
+      setMessage(e instanceof Error ? e.message : "Unable to add student.");
+    }
+  }
+
+  const totalMembers = classes.reduce(
+    (total, cls) => total + cls.memberships.length,
+    0
+  );
+  
+  return (
+    <>
+      <PageHeading
+        eyebrow="ACADEMIC DIRECTORY"
+        title="Your classes"
+        description="Manage class rosters, representatives, and upcoming room reservations."
+      />
+
+<div className="class-overview">
+  <div className="overview-card">
+    <div className="overview-icon">
+      <CalendarDays size={20} />
+    </div>
+    <span>Total classes</span>
+    <strong>{classes.length}</strong>
+  </div>
+
+  <div className="overview-card">
+    <div className="overview-icon">
+      <Users size={20} />
+    </div>
+    <span>Total students</span>
+    <strong>
+      {classes.reduce((total, cls) => total + cls.memberships.length, 0)}
+    </strong>
+  </div>
+  <div className="overview-card">
+  <div className="overview-icon">
+    <UserCheck size={20} />
+  </div>
+  <span>Total representatives</span>
+  <strong>
+    {classes.reduce((total, cls) => total + cls.representatives.length, 0)}
+  </strong></div>
+</div>
+      <div className="class-list">
+        {classes.map(cls => (
+          <section className="panel class-panel" key={cls.id}>
+
+            <div className="class-banner">
+              <div className="class-monogram">
+                {cls.block.slice(-2)}
+              </div>
+
+              <div className="class-heading">
+                <span className="eyebrow">{cls.program}</span>
+                <h2>{cls.block}</h2>
+                <p>
+                  {cls.yearLevel}
+                  {cls.yearLevel === 1 ? "st" :
+                   cls.yearLevel === 2 ? "nd" :
+                   cls.yearLevel === 3 ? "rd" : "th"}
+                  {" year · "}
+                  {cls.memberships.length} members
+                </p>
+              </div>
+            </div>
+
+            <div className="class-content">
+
+              <div className="class-people">
+
+                <div className="class-section-heading">
+                  <h3>Representatives</h3>
+                  <span>{cls.representatives.length}</span>
+                </div>
+
+                <div className="member-list">
+                  {cls.representatives.map((rep: any) => (
+                    <div className="member-row" key={rep.id}>
+                      <span className="avatar">
+                        {rep.fullName.split(" ").map((n: string) => n[0]).slice(0, 2).join("")}
+                      </span>
+
+                      <span>
+                        {rep.fullName}
+                        <small>{rep.email}</small>
+                      </span>
+
+                      <span className="status confirmed">
+                        Representative
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="class-section-heading">
+                  <h3>Class members</h3>
+                  <span>{cls.memberships.length}</span>
+                </div>
+
+                <div className="member-list">
+                  {cls.memberships.map((m: any) => (
+                    <div className="member-row" key={m.id}>
+                      <span className="avatar">
+                        {m.user.fullName.split(" ").map((n: string) => n[0]).slice(0, 2).join("")}
+                      </span>
+
+                      <span>
+                        {m.user.fullName}
+                        <small>{m.user.email}</small>
+                      </span>
+
+                      {m.isRep && (
+                        <span className="status confirmed">Rep</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                {cls.memberships.some(
+                  (m: any) => m.userId === user?.id && m.isRep
+                ) && (
+                  <div className="add-member">
+                    <label className="field-label">
+                      Add existing student by email
+                      <input
+                        type="email"
+                        placeholder="student@school.edu"
+                        value={email[cls.id] ?? ""}
+                        onChange={e =>
+                          setEmail(v => ({ ...v, [cls.id]: e.target.value }))
+                        }
+                      />
+                    </label>
+
+                    <button
+                      className="btn secondary"
+                      onClick={() => addMember(cls.id)}
+                    >
+                      <Plus size={15} /> Add student
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              <div className="class-reservations">
+                <div className="class-section-heading">
+                  <h3>Confirmed reservations</h3>
+                  <span>{cls.reservations.length}</span>
+                </div>
+
+                {cls.reservations.length ? (
+                  cls.reservations.map((r: any) => (
+                    <div className="class-reservation" key={r.id}>
+                      <strong>Room {r.room.number}</strong>
+                      <span>
+                        {new Date(r.startAt).toLocaleDateString()}
+                      </span>
+                      <small>
+                        {new Date(r.startAt).toLocaleTimeString([], {
+                          hour: "numeric",
+                          minute: "2-digit"
+                        })}
+                        {" – "}
+                        {new Date(r.endAt).toLocaleTimeString([], {
+                          hour: "numeric",
+                          minute: "2-digit"
+                        })}
+                      </small>
+                    </div>
+                  ))
+                ) : (
+                  <p className="muted">No upcoming reservations.</p>
+                )}
+              </div>
+
+            </div>
+          </section>
+        ))}
+      </div>
+
+      {message && (
+        <div className="alert" role="status">
+          {message}
+        </div>
+      )}
+    </>
+  );
 }
 function ProfilePage() {
   const {user}=useAuth();
@@ -447,7 +674,7 @@ function ProfilePage() {
 export function App() {
   const [user,setUser]=useState<User|null>(null);
   const [loading,setLoading]=useState(true);
-  useEffect(()=>{refreshCsrf().then(()=>api.get<{user:User}>("/auth/me")).then(r=>setUser(r.user)).catch(()=>setUser(null)).finally(()=>setLoading(false));},[]);
+  useEffect(()=>{syncPreviewFromUrl();refreshCsrf().then(()=>api.get<{user:User}>("/auth/me")).then(r=>setUser(r.user)).catch(()=>setUser(null)).finally(()=>setLoading(false));},[]);
   if(loading)return <div className="app-loading"><span className="brand-mark">R</span><span>Preparing your campus…</span></div>;
   return <AuthContext.Provider value={{user,setUser}}><Routes><Route path="/login" element={<LoginPage/>}/><Route path="/" element={<Protected><DashboardPage/></Protected>}/><Route path="/rooms" element={<Protected><RoomsPage/></Protected>}/><Route path="/queue" element={<Protected representative><QueuePage/></Protected>}/><Route path="/classes" element={<Protected><ClassesPage/></Protected>}/><Route path="/profile" element={<Protected><ProfilePage/></Protected>}/><Route path="*" element={<Navigate to="/" replace/>}/></Routes></AuthContext.Provider>;
 }

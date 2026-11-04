@@ -1837,3 +1837,341 @@ input::placeholder {
     transition: none !important;
   }
 }
+
+/* ========================================
+   CLASSES PAGE - SOFT & MODERN DESIGN
+   ======================================== */
+
+   .class-list {
+    gap: 22px;
+  }
+  
+  
+.class-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 26px;
+  box-shadow: var(--shadow);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+  
+  .class-panel:hover {
+    box-shadow: 0 9px 26px rgba(75, 100, 70, 0.10);
+    transform: translateY(-2px);
+  }
+  
+  /* Class header */
+  
+  .class-banner {
+    gap: 18px;
+    padding-bottom: 23px;
+    border-bottom: 1px solid #e9eee5;
+  }
+  
+  .class-monogram {
+    width: 60px;
+    height: 60px;
+    border-radius: 16px;
+    background: var(--blue-soft);
+    color: var(--blue);
+    font-size: 20px;
+    font-weight: 600;
+  }
+  
+  .class-banner .eyebrow {
+    color: #789071;
+  }
+  
+  .class-banner h2 {
+    color: #192d53;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 23px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+  }
+  
+  .class-banner p {
+    color: #879383;
+    font-size: 12px;
+  }
+  
+  /* Main content */
+  
+  .class-content {
+    gap: 30px;
+    padding-top: 25px;
+  }
+  
+  .class-content h3 {
+    color: var(--brand-text);
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 15px;
+  }
+  
+  /* Member lists */
+  
+  .member-list {
+    gap: 10px;
+    margin-bottom: 25px;
+  }
+  
+  .member-row {
+    gap: 12px;
+    padding: 11px 12px;
+    border: 1px solid #edf0e9;
+    border-radius: 12px;
+    background: #fff;
+    font-size: 12px;
+    transition: background 0.2s ease;
+  }
+  
+  .member-row:hover {
+    background: #f7f9f3;
+  }
+  
+  .class-panel .avatar {
+    width: 37px;
+    height: 37px;
+    background: var(--blue-soft);
+color: var(--blue);
+    font-size: 11px;
+  }
+  
+  .member-row small {
+    color: #929b8e;
+    font-size: 10px;
+  }
+  
+  /* Representative badges */
+  
+  .class-panel .status.confirmed {
+    background: #e8f1e5;
+    color: #587653;
+    border-radius: 20px;
+    padding: 6px 9px;
+  }
+  
+  /* Add student section */
+  
+  .add-member {
+    border-top: 1px solid #e9eee5;
+    padding-top: 20px;
+  }
+  
+  .add-member .field-label {
+    color: #526650;
+  }
+  
+  .add-member input {
+    border: 1px solid #dfe7da;
+    border-radius: 10px;
+    background: #fff;
+    padding: 12px 14px;
+  }
+  
+  .add-member input:focus {
+    border-color: #8da987;
+    outline: 3px solid #e7efe3;
+  }
+  
+  /* Add student button */
+  
+  .class-panel .btn.secondary {
+    background: #e7efe3;
+    border-color: #e7efe3;
+    color: #526f4d;
+    border-radius: 10px;
+    padding: 12px 16px;
+  }
+  
+  .class-panel .btn.secondary:hover {
+    background: #dce8d7;
+  }
+  
+  /* Reservations */
+  
+  .class-reservations {
+    background: #f7f8f2;
+    border: 1px solid #e9eee3;
+    border-radius: 14px;
+    padding: 18px;
+    align-self: start;
+  }
+  
+  
+.class-reservation {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  padding: 14px;
+  gap: 7px;
+}
+  
+  .class-reservation strong {
+    color: var(--brand-text);
+    font-size: 12px;
+  }
+  
+  .class-reservation span,
+  .class-reservation small {
+    color: var(--muted);
+    font-size: 10px;
+  }
+  
+  /* Mobile layout */
+  
+  @media (max-width: 520px) {
+    .class-panel {
+      padding: 18px;
+      border-radius: 15px;
+    }
+  
+    .class-banner {
+      gap: 13px;
+    }
+  
+    .class-monogram {
+      width: 50px;
+      height: 50px;
+      font-size: 17px;
+    }
+  
+    .class-banner h2 {
+      font-size: 19px;
+    }
+  
+    .class-content {
+      gap: 22px;
+    }
+  
+    .class-reservations {
+      padding: 14px;
+    }
+  }
+  
+
+.class-overview {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+
+.overview-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+}
+
+.overview-card span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.overview-card strong {
+  color: var(--brand-text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.class-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.class-section-heading h3 {
+  margin: 0;
+}
+
+.class-section-heading > span {
+  display: grid;
+  place-items: center;
+  min-width: 26px;
+  height: 26px;
+  padding: 0 7px;
+  border-radius: 20px;
+  background: #e8efe3;
+  color: #587653;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+@media (max-width: 600px) {
+  .class-overview {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .overview-card {
+    padding: 15px 18px;
+  }
+
+  .overview-card strong {
+    font-size: 24px;
+  }
+}
+
+/* Class card layout improvements */
+
+.class-heading {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.class-heading h2 {
+  margin: 0;
+}
+
+.class-people {
+  min-width: 0;
+}
+
+.class-content {
+  align-items: start;
+}
+
+.class-reservations {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.class-reservations > p {
+  margin: 8px 0 0;
+  line-height: 1.6;
+}
+
+.class-reservation strong {
+  font-size: 13px;
+}
+
+.class-reservation {
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.class-reservation:hover {
+  background: #f7f9f3;
+  border-color: #dce6d6;
+}
+
+.member-row {
+  min-height: 48px;
+  box-sizing: border-box;
+}
+
+@media (max-width: 800px) {
+  .class-content {
+    grid-template-columns: 1fr;
+  }
+}

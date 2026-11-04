@@ -1,7 +1,16 @@
+import { handlePreviewRequest, isPreviewEnabled } from "./preview";
+
 const API = import.meta.env.VITE_API_URL ?? "http://localhost:4000/api";
 let csrfToken = "";
 
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
+  if (isPreviewEnabled()) {
+    const data = await handlePreviewRequest<T>(path, init);
+    if (path === "/auth/csrf" && data && typeof data === "object" && "csrfToken" in data) {
+      csrfToken = String((data as { csrfToken: string }).csrfToken);
+    }
+    return data;
+  }
   const method = (init.method ?? "GET").toUpperCase();
   const headers = new Headers(init.headers);
   if (init.body && !headers.has("Content-Type")) headers.set("Content-Type", "application/json");
