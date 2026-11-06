@@ -285,7 +285,7 @@ select:focus-visible {
 
 .page-heading h1 {
   font-family: 'DM Mono', monospace;
-  font-size: clamp(24px, 3vw, 32px);
+  font-size: clamp(30px, 3.8vw, 40px);
   letter-spacing: -1.3px;
   margin: 9px 0 20px;
   font-weight: 500;
@@ -1836,4 +1836,86 @@ input::placeholder {
   .theme-switching * {
     transition: none !important;
   }
+}
+
+.profile-menu {
+  position: relative;
+}
+
+.profile-chip-button {
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text);
+  padding: 4px 8px;
+  font: inherit;
+  cursor: pointer;
+}
+
+.profile-chip-button:hover,
+.profile-chip-button[aria-expanded="true"] {
+  background: var(--surface-2);
+  border-color: var(--border);
+}
+
+.profile-popover {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: min(300px, calc(100vw - 36px));
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  box-shadow: var(--shadow);
+  padding: 18px;
+  z-index: 20;
+  animation: pop .18s ease-out;
+}
+
+@keyframes pop {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: none; }
+}
+
+.profile-popover-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 14px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.profile-popover-head strong {
+  display: block;
+  font-size: 13px;
+}
+
+.profile-popover-head small {
+  display: block;
+  color: var(--muted);
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+
+.profile-popover-list {
+  margin: 0 0 12px;
+  display: grid;
+  gap: 10px;
+}
+
+.profile-popover-list div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.profile-popover-list dt {
+  font-size: 10px;
+}
+
+.profile-popover-list dd {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
 }
