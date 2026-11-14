@@ -38,3 +38,22 @@ apps/web/tsconfig.json
 apps/web/vite.config.ts
 apps/web/vitest.config.ts
 package.json
+
+-- Create Program records from existing classes
+INSERT INTO "Program" ("id", "code", "name", "active", "createdAt")
+SELECT
+    'program_' || LOWER(SPLIT_PART("block", '-', 1)),
+    SPLIT_PART("block", '-', 1),
+    "program",
+    true,
+    CURRENT_TIMESTAMP
+FROM "Class"
+GROUP BY
+    SPLIT_PART("block", '-', 1),
+    "program";
+
+-- Link existing classes to their corresponding programs
+UPDATE "Class" AS c
+SET "programId" = p."id"
+FROM "Program" AS p
+WHERE p."code" = SPLIT_PART(c."block", '-', 1);

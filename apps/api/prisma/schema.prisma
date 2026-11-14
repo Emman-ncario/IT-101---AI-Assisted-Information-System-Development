@@ -17,6 +17,16 @@ enum ReservationStatus {
   CONFIRMED
   CANCELLED
 }
+model Program {
+  id        String   @id @default(cuid())
+  code      String   @unique
+  name      String   @unique
+  active    Boolean  @default(true)
+  classes   Class[]
+  createdAt DateTime @default(now())
+
+  @@index([active])
+}
 
 model User {
   id              String            @id @default(cuid())
@@ -28,6 +38,7 @@ model User {
   createdReservations Reservation[] @relation("ReservationCreator")
   queueItems      BookingQueueItem[]
   representativeFor Class[]         @relation("ClassRepresentatives")
+  createdInvitationCodes ClassInvitationCode[] @relation("InvitationCodeCreator")
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
 }
@@ -36,12 +47,18 @@ model Class {
   id             String            @id @default(cuid())
   block          String            @unique
   program        String
+  programId      String?
+  programDetails Program?           @relation(fields: [programId], references: [id], onDelete: Restrict)
   yearLevel      Int
   memberships    ClassMembership[]
+  invitationCodes ClassInvitationCode[]
+  regularSchedules RegularSchedule[]
   representatives User[]           @relation("ClassRepresentatives")
   reservations   Reservation[]
   bookingQueueItems BookingQueueItem[]
   createdAt      DateTime          @default(now())
+
+  @@index([programId])
 }
 
 model ClassMembership {
@@ -57,22 +74,28 @@ model ClassMembership {
 }
 
 model Building {
-  id          String  @id @default(cuid())
-  code        String  @unique
+  id          String   @id @default(cuid())
+  code        String   @unique
   name        String
   description String
   imageUrl    String?
+  active      Boolean  @default(true)
   floors      Floor[]
   createdAt   DateTime @default(now())
+
+  @@index([active])
 }
 
 model Floor {
   id         String   @id @default(cuid())
   number     Int
+  active     Boolean  @default(true)
   buildingId String
   building   Building @relation(fields: [buildingId], references: [id], onDelete: Cascade)
   rooms      Room[]
+
   @@unique([buildingId, number])
+  @@index([active])
 }
 
 model Room {
@@ -85,6 +108,7 @@ model Room {
   active      Boolean @default(true)
   floorId     String
   floor       Floor   @relation(fields: [floorId], references: [id], onDelete: Cascade)
+  regularSchedules RegularSchedule[]
   reservations Reservation[]
   queueItems  BookingQueueItem[]
   @@unique([floorId, number])
@@ -95,14 +119,15 @@ model Reservation {
   id          String            @id @default(cuid())
   roomId      String
   classId     String
-  createdById String
+  createdById String?
   startAt     DateTime          @db.Timestamptz(3)
   endAt       DateTime          @db.Timestamptz(3)
   status      ReservationStatus @default(CONFIRMED)
   cancelledAt DateTime?
+  endedEarlyAt DateTime?
   room        Room              @relation(fields: [roomId], references: [id], onDelete: Restrict)
   class       Class             @relation(fields: [classId], references: [id], onDelete: Restrict)
-  createdBy   User              @relation("ReservationCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  createdBy   User?              @relation("ReservationCreator", fields: [createdById], references: [id], onDelete: SetNull)
   createdAt   DateTime          @default(now())
   updatedAt   DateTime          @updatedAt
   @@index([roomId, startAt, endAt])
@@ -122,4 +147,96 @@ model BookingQueueItem {
   room      Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
   class     Class    @relation(fields: [classId], references: [id], onDelete: Cascade)
   @@index([userId, createdAt])
+}
+
+model ClassInvitationCode {
+  id        String   @id @default(cuid())
+  codeHash  String   @unique
+  classId   String
+  createdById String?
+  maxUses   Int      @default(2)
+  usedCount Int      @default(0)
+  active    Boolean  @default(true)
+  expiresAt DateTime?
+  createdAt DateTime @default(now())
+
+  class     Class    @relation(fields: [classId], references: [id], onDelete: Cascade)
+  createdBy User?     @relation("InvitationCodeCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  pendingRegistrations PendingRepresentativeRegistration[]
+
+  @@index([classId, active])
+}
+
+model PendingRepresentativeRegistration {
+  id             String   @id @default(cuid())
+  fullName       String
+  email          String   @unique
+  passwordHash   String
+  otpHash        String
+  otpExpiresAt   DateTime
+  otpAttempts    Int      @default(0)
+  lastOtpSentAt  DateTime
+  invitationCodeId String
+  invitationCode ClassInvitationCode @relation(fields: [invitationCodeId], references: [id], onDelete: Cascade)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([otpExpiresAt])
+}
+model RegularSchedule {
+  id        String   @id @default(cuid())
+  roomId    String
+  classId   String
+
+  // Days: 1 = Monday, 2 = Tuesday, ... 6 = Saturday
+  days      Int[]
+
+  startTime String
+  endTime   String
+
+  effectiveFrom DateTime @db.Date
+  effectiveUntil DateTime? @db.Date
+
+  active    Boolean  @default(true)
+
+  room      Room     @relation(fields: [roomId], references: [id], onDelete: Restrict)
+  class     Class    @relation(fields: [classId], references: [id], onDelete: Restrict)
+
+  exceptions ScheduleException[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([roomId, active])
+  @@index([classId])
+}
+model ScheduleException {
+  id                String   @id @default(cuid())
+  regularScheduleId String
+  date              DateTime @db.Date
+
+  // CANCELLED makes the room available for this occurrence.
+  // MODIFIED allows an administrator to change the time.
+  type              String   @default("CANCELLED")
+
+  newStartTime      String?
+  newEndTime        String?
+
+  reason            String?
+
+  regularSchedule   RegularSchedule @relation(fields: [regularScheduleId], references: [id], onDelete: Cascade)
+
+  createdAt         DateTime @default(now())
+
+  @@unique([regularScheduleId, date])
+  @@index([date])
+}
+
+model Session {
+  sid    String   @id @db.VarChar
+  sess   Json     @db.Json
+  expire DateTime @db.Timestamp(6)
+
+  @@index([expire], map: "IDX_session_expire")
+  @@map("session")
 }

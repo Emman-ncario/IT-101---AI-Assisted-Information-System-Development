@@ -1,3 +1,4 @@
+
 import { PrismaClient, UserRole } from "@prisma/client";
 import argon2 from "argon2";
 
@@ -22,7 +23,6 @@ async function main() {
         role: UserRole.REPRESENTATIVE,
       },
     }),
-
     prisma.user.upsert({
       where: { email: "student.it1a@example.test" },
       update: {
@@ -36,7 +36,6 @@ async function main() {
         role: UserRole.STUDENT,
       },
     }),
-
     prisma.user.upsert({
       where: { email: "rep.it1b@example.test" },
       update: {
@@ -50,7 +49,6 @@ async function main() {
         role: UserRole.REPRESENTATIVE,
       },
     }),
-
     prisma.user.upsert({
       where: { email: "student.it1b@example.test" },
       update: {
@@ -66,25 +64,58 @@ async function main() {
     }),
   ]);
 
-  const classA = await prisma.class.upsert({
-    where: { block: "BSIT-1A" },
-    update: {},
-    create: {
-      block: "BSIT-1A",
-      program: "BS Information Technology",
-      yearLevel: 1,
-    },
-  });
 
-  const classB = await prisma.class.upsert({
-    where: { block: "BSIT-1B" },
-    update: {},
-    create: {
-      block: "BSIT-1B",
-      program: "BS Information Technology",
-      yearLevel: 1,
-    },
-  });
+  // Generate the initial programs and their class combinations.
+  const programs = [
+    { code: "BSIT", name: "Information Technology" },
+    { code: "BSCS", name: "Computer Science" },
+    { code: "BSCHEM", name: "Chemistry" },
+    { code: "BSMET", name: "Meteorology" },
+  ];
+
+  const blockLetters = ["A", "B", "C", "D"];
+
+  const classRecords = new Map<string, { id: string }>();
+
+  for (const program of programs) {
+    // Create the program if it does not exist.
+    // Do not change its active status if it already exists.
+    const programRecord = await prisma.program.upsert({
+      where: { code: program.code },
+      update: {},
+      create: {
+        code: program.code,
+        name: program.name,
+      },
+    });
+
+    for (const yearLevel of [1, 2, 3, 4]) {
+      for (const letter of blockLetters) {
+        const block = `${program.code}-${yearLevel}${letter}`;
+
+        const cls = await prisma.class.upsert({
+          where: { block },
+          update: {
+            program: programRecord.name,
+            programId: programRecord.id,
+            yearLevel,
+          },
+          create: {
+            block,
+            program: programRecord.name,
+            programId: programRecord.id,
+            yearLevel,
+          },
+        });
+
+        classRecords.set(block, cls);
+      }
+    }
+  }
+
+  // Keep the existing demo accounts assigned to their original classes.
+  const classA = classRecords.get("BSIT-1A")!;
+  const classB = classRecords.get("BSIT-1B")!;
 
   for (const [user, cls, isRep] of [
     [repA, classA, true],
@@ -126,6 +157,7 @@ async function main() {
     },
   });
 
+  // Create sample building and rooms.
   const building = await prisma.building.upsert({
     where: { code: "SCI" },
     update: {},
@@ -181,6 +213,7 @@ async function main() {
     }
   }
 
+  console.log("Created or updated 64 class combinations.");
   console.log("Seed complete. Development-only password: DemoPass!234");
 }
 
