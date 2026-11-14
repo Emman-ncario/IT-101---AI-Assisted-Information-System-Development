@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title desc">
+  <title id="title">Room for More? logo</title>
+  <desc id="desc">A navy-blue campus building with a warm amber reservation check mark.</desc>
+  <rect x="8" y="8" width="112" height="112" rx="27" fill="#2864C8"/>
+  <path d="M35 99V39a7 7 0 0 1 7-7h44a7 7 0 0 1 7 7v60" fill="none" stroke="#fff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M49 48h9m12 0h9M49 65h9m12 0h9M49 82h9m12 0h9" stroke="#fff" stroke-width="6" stroke-linecap="round"/>
+  <circle cx="91" cy="91" r="24" fill="#F2A65A" stroke="#fff" stroke-width="5"/>
+  <path d="m80 91 7 7 15-16" fill="none" stroke="#172B4D" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
